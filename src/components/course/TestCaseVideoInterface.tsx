@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Course } from "../../types";
+import { useScorecard } from "../../store/ScorecardContext";
+import { useAssessment } from "../../store/assessmentContext";
 import { 
   Video, 
   UploadCloud, 
@@ -27,7 +29,8 @@ import {
   ArrowRight,
   ShieldAlert,
   Layers,
-  HelpCircle
+  HelpCircle,
+  XCircle
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
