@@ -18,6 +18,10 @@ import {
 } from "lucide-react";
 import { SkillMasteryModal, SkillMasteryItem } from "./SkillMasteryModal";
 import { SkillMasteryBadgesList } from "./SkillMasteryBadgesList";
+import { StudentProgressSummary } from "./StudentProgressSummary";
+import { GamificationStreak } from "./GamificationStreak";
+import { BadgesShowcase } from "./BadgesShowcase";
+import { AdvancedMediaUpload } from "./AdvancedMediaUpload";
 
 interface StudentDashboardProps {
   onStartAssessment: () => void;
@@ -28,11 +32,11 @@ interface StudentDashboardProps {
 
 /**
  * =========================================================================
- * FEATURE D: First-Time Onboarding & Student Dashboard
- * - Spacious tutorial-style online learning layout
- * - Prominently highlights "Continue Pending Course" section
- * - Provides immediate "Start a New Course" action
- * - Displays NSQF Trade competencies, viva-voce scores, and vision audit logs
+ * ENHANCED STUDENT DASHBOARD & ENROLLMENT SUITE
+ * - Centralized Dashboard: Comprehensive progress summary with readiness KPI
+ * - Gamification Engines: Learning Streak tracker + Badges Showcase grid
+ * - Advanced Media Upload: Drag-and-drop upload zone, progress state, instant
+ *   playback self-review container, timestamp tagging, AI pre-flight audit
  * =========================================================================
  */
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -96,55 +100,29 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   const activeCourses = courses.filter((c) => enrolledCourseIds.includes(c.id));
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-10 animate-in fade-in duration-300 pb-12">
       {/* ========================================================
-       * WELCOME BANNER & TRADE CREDENTIAL SUMMARY
-       * Spacious, clean header with user institution badge
+       * 1. CENTRALIZED DASHBOARD: PROGRESS SUMMARY & JOB READINESS
        * ======================================================== */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-800/80">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 uppercase tracking-wider">
-              NSQF Level {selectedCourse.nsqfLevel} • {selectedCourse.tradeCode}
-            </span>
-            <span className="text-[10px] font-mono text-slate-400">
-              Roll: {currentUser?.id || "TRAINEE-2026-IND-01"}
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-            Welcome back, {currentUser?.name || "Rajesh Kumar"}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-light mt-1">
-            Enrolled in {currentUser?.institution || "Government ITI Pusa, New Delhi"} • Dual-evidence practical training underway
-          </p>
-        </div>
-
-        {/* Trade Badges */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onViewScorecard}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-mono text-slate-300 hover:text-white flex items-center gap-2 transition-colors"
-          >
-            <ShieldCheck className="w-4 h-4 text-cyan-400" />
-            <span>Master Scorecard</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenSideBySide}
-            className="px-3.5 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs font-mono text-cyan-300 hover:text-white flex items-center gap-2 transition-colors"
-          >
-            <Video className="w-4 h-4 text-cyan-400" />
-            <span>Side-by-Side Mode</span>
-          </button>
-        </div>
-      </div>
+      <StudentProgressSummary
+        user={currentUser}
+        course={selectedCourse}
+        readinessScore={84.2}
+        onLaunchDrill={onStartAssessment}
+        onOpenScorecard={onViewScorecard}
+      />
 
       {/* ========================================================
-       * FEATURE D: HERO DUAL-ACTION SECTION
-       * 1) "Continue Pending Course" (Left / Main)
-       * 2) "Start a New Course" (Right Action Card)
+       * 2. GAMIFICATION ENGINES: LEARNING STREAK TRACKER
+       * ======================================================== */}
+      <GamificationStreak
+        currentStreakDays={14}
+        longestStreakDays={22}
+        onPracticeDrill={onStartAssessment}
+      />
+
+      {/* ========================================================
+       * 3. HERO DUAL-ACTION SECTION: ACTIVE PATHWAY & NEW COURSES
        * ======================================================== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 1) CONTINUE PENDING COURSE SECTION */}
@@ -190,7 +168,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
             </div>
 
-            {/* Interactive Skill Mastery Badges Showcase */}
+            {/* Interactive Skill Mastery Badges Showcase Strip */}
             <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/90 shadow-sm">
               <SkillMasteryBadgesList
                 course={selectedCourse}
@@ -205,7 +183,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 type="button"
                 id="continue-course-btn"
                 onClick={onStartAssessment}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-current" />
                 <span>Continue Assessment (Module 2)</span>
@@ -214,7 +192,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <button
                 type="button"
                 onClick={onOpenSideBySide}
-                className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors"
+                className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Video className="w-4 h-4 text-cyan-400" />
                 <span>Open Side-by-Side Player</span>
@@ -249,7 +227,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     key={c.id}
                     type="button"
                     onClick={() => selectCourse(c.id)}
-                    className={`w-full p-2.5 rounded-xl border text-left transition-all group ${
+                    className={`w-full p-2.5 rounded-xl border text-left transition-all group cursor-pointer ${
                       c.id === selectedCourse.id
                         ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-300"
                         : "bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800/60"
@@ -290,7 +268,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <button
             type="button"
             onClick={onOpenNewCourse}
-            className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors group"
+            className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors group cursor-pointer"
           >
             <span>Browse All High-Value Courses</span>
             <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-amber-400" />
@@ -299,9 +277,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       </div>
 
       {/* ========================================================
-       * ACTIVE ENROLLED COURSES & VISUAL PROGRESS TRACKERS
-       * Visual progress bar for each active course filling up
-       * based on the user's completion percentage
+       * 4. ACTIVE ENROLLED COURSES & VISUAL PROGRESS TRACKERS
        * ======================================================== */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -361,7 +337,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       <button
                         type="button"
                         onClick={() => selectCourse(course.id)}
-                        className="text-[11px] font-mono text-slate-400 hover:text-white px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors shrink-0"
+                        className="text-[11px] font-mono text-slate-400 hover:text-white px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors shrink-0 cursor-pointer"
                       >
                         Switch
                       </button>
@@ -434,7 +410,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <button
                       type="button"
                       onClick={onStartAssessment}
-                      className="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-xs font-mono text-cyan-300 hover:text-white flex items-center gap-1.5 transition-colors shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-xs font-mono text-cyan-300 hover:text-white flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
                     >
                       <span>Resume</span>
                       <Play className="w-3 h-3 fill-current" />
@@ -446,10 +422,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         selectCourse(course.id);
                         onStartAssessment();
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
                     >
                       <span>Open Course</span>
-                      <ChevronRight className="w-3 h-3" />
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -460,17 +436,31 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       </div>
 
       {/* ========================================================
-       * COURSE MODULES BREAKDOWN
-       * Clean tutorial breakdown with status indicators
+       * 5. GAMIFICATION: BADGES SHOWCASE GRID
+       * ======================================================== */}
+      <BadgesShowcase onPracticeDrill={onStartAssessment} />
+
+      {/* ========================================================
+       * 6. ADVANCED MEDIA UPLOAD & SELF-REVIEW STUDIO
+       * ======================================================== */}
+      <AdvancedMediaUpload />
+
+      {/* ========================================================
+       * 7. DETAILED NSQF MODULE BREAKDOWN & DRILL LAUNCHER
        * ======================================================== */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-cyan-400" />
-            <span>Curriculum Modules & Assessment Drills</span>
-          </h3>
-          <span className="text-xs font-mono text-slate-400">
-            {totalModulesCount} Modules in {selectedCourse.tradeCode}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <span>{selectedCourse.title} • NSQF Curriculum Modules</span>
+            </h3>
+            <p className="text-xs text-slate-400 font-light mt-0.5">
+              Each module requires dual-evidence verification: physical tool dexterity &amp; verbal technical rationale
+            </p>
+          </div>
+          <span className="text-xs font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-500/20 px-3 py-1 rounded-full w-fit">
+            {completedModulesCount} of {totalModulesCount} Mastered
           </span>
         </div>
 
@@ -480,20 +470,20 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               key={mod.id}
               className={`p-5 rounded-2xl border transition-all ${
                 mod.completed
-                  ? "bg-slate-900/40 border-emerald-500/30"
-                  : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                  ? "bg-slate-900/90 border-slate-800"
+                  : "bg-slate-900/50 border-slate-800/80"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs ${
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
                       mod.completed
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                        : "bg-slate-800 text-slate-300 border border-slate-700"
+                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
                     }`}
                   >
-                    0{idx + 1}
+                    {idx + 1}
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white">{mod.title}</h4>
@@ -520,12 +510,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         digitalHash: `0x${selectedCourse.tradeCode.slice(0, 4)}_MOD${idx + 1}_GOLD`,
                       });
                     }}
-                    className="relative overflow-hidden inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-500/15 to-amber-600/25 text-amber-300 border border-amber-400/70 shadow-md shadow-amber-500/20 animate-badge-glow cursor-pointer hover:scale-105 active:scale-95 transition-transform shrink-0"
+                    className="relative overflow-hidden inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/25 via-yellow-500/15 to-amber-600/25 text-amber-300 border border-amber-400/70 shadow-md shadow-amber-500/20 cursor-pointer hover:scale-105 active:scale-95 transition-transform shrink-0"
                     title="100% Mastered - Click to inspect verified credential"
                   >
-                    {/* Animated Specular Light Gleam */}
-                    <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none animate-badge-shine" />
-                    <Award className="w-3.5 h-3.5 text-amber-400 fill-amber-400/40 animate-star-sparkle" />
+                    <Award className="w-3.5 h-3.5 text-amber-400 fill-amber-400/40" />
                     <span>100% Mastered</span>
                     <Sparkles className="w-2.5 h-2.5 text-amber-300" />
                   </button>
@@ -539,7 +527,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                       type="button"
                       onClick={() => updateCourseCompletedModules(selectedCourse.id, idx + 1)}
                       className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/60 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Simulate reaching 100% completion in this module to watch the Skill Mastery badge shine"
+                      title="Simulate reaching 100% completion in this module"
                     >
                       <Sparkles className="w-2.5 h-2.5 text-amber-400" />
                       <span>Pass 100%</span>
@@ -554,7 +542,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 <button
                   type="button"
                   onClick={onStartAssessment}
-                  className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                  className="text-xs font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer"
                 >
                   <span>{mod.completed ? "Review Recording" : "Launch Studio"}</span>
                   <ChevronRight className="w-3.5 h-3.5" />

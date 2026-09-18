@@ -1,4 +1,13 @@
-import { Course, MasterScorecardReport, CohortHeatmapData, UserProfile } from "../types";
+import { 
+  Course, 
+  MasterScorecardReport, 
+  CohortHeatmapData, 
+  UserProfile, 
+  CandidateItem, 
+  GamificationBadge, 
+  TrendDataPoint, 
+  RemedialQuizQuestion 
+} from "../types";
 
 export const DEFAULT_STUDENT_USER: UserProfile = {
   id: "STUDENT_ITI_DL_2026_042",
@@ -545,7 +554,7 @@ export const FACULTY_REVIEW_QUEUE = [
   }
 ];
 
-export const RECRUITER_CANDIDATE_POOL = [
+export const RECRUITER_CANDIDATE_POOL: CandidateItem[] = [
   {
     candidate_id: "STUDENT_ITI_MH_2026_119",
     name: "Amit Patel",
@@ -557,7 +566,15 @@ export const RECRUITER_CANDIDATE_POOL = [
     verified_clip_duration: "3.2s verified isolation & torque",
     hiring_status: "Available for Immediate Plant Hire",
     safety_score: 96,
-    practical_speed_rank: "Top 5%"
+    practical_speed_rank: "Top 5%",
+    project_upload_tier: "Gold Tier (3+ Drills)",
+    nsqf_level: 4,
+    viva_speech_score: 93,
+    procedural_score: 95,
+    uncertainty_rate: 1.2,
+    video_drills_count: 4,
+    key_skills: ["1000V Dielectric Gloves", "CAT-III Multimeter", "Zero Potential", "Terminal Pull Test"],
+    task_execution_time: "28 seconds"
   },
   {
     candidate_id: "STUDENT_ITI_DL_2026_042",
@@ -570,7 +587,15 @@ export const RECRUITER_CANDIDATE_POOL = [
     verified_clip_duration: "Glove violation logged at 14.2s",
     hiring_status: "Remediating PPE Compliance (Day 2/7)",
     safety_score: 65,
-    practical_speed_rank: "Top 25%"
+    practical_speed_rank: "Top 25%",
+    project_upload_tier: "Silver Tier (2 Drills)",
+    nsqf_level: 4,
+    viva_speech_score: 84,
+    procedural_score: 88,
+    uncertainty_rate: 3.4,
+    video_drills_count: 2,
+    key_skills: ["MCB Distribution", "LOTO Protocols", "Zero Voltage Check", "Terminal Tightening"],
+    task_execution_time: "36 seconds"
   },
   {
     candidate_id: "STUDENT_ITI_TN_2026_204",
@@ -583,6 +608,512 @@ export const RECRUITER_CANDIDATE_POOL = [
     verified_clip_duration: "24VDC loop wiring verified",
     hiring_status: "Shortlisted by Siemens India",
     safety_score: 94,
-    practical_speed_rank: "Top 10%"
+    practical_speed_rank: "Top 10%",
+    project_upload_tier: "Gold Tier (3+ Drills)",
+    nsqf_level: 5,
+    viva_speech_score: 90,
+    procedural_score: 92,
+    uncertainty_rate: 1.8,
+    video_drills_count: 3,
+    key_skills: ["24VDC Sensor Loops", "Noise Shield Grounding", "Ferruling Standard", "DIN-Rail Architecture"],
+    task_execution_time: "32 seconds"
+  },
+  {
+    candidate_id: "STUDENT_ITI_RJ_2026_055",
+    name: "Priya Rathore",
+    trade: "Solar PV Rooftop Technician",
+    institution: "Govt ITI Jaipur Technical",
+    composite_score: 93.0,
+    verdict: "CERTIFIED_COMPETENT",
+    verified_badge: "SB-NSQF-2026-9042-AUTH",
+    verified_clip_duration: "DC string combiner wiring passed",
+    hiring_status: "Available for Immediate Plant Hire",
+    safety_score: 98,
+    practical_speed_rank: "Top 8%",
+    project_upload_tier: "Gold Tier (3+ Drills)",
+    nsqf_level: 4,
+    viva_speech_score: 91,
+    procedural_score: 94,
+    uncertainty_rate: 0.9,
+    video_drills_count: 4,
+    key_skills: ["DC Combiner Splicing", "Inverter MPPT Isolation", "Fall Arrest Harness", "Array Polarity"],
+    task_execution_time: "30 seconds"
+  },
+  {
+    candidate_id: "STUDENT_ITI_GJ_2026_015",
+    name: "Farhan Ali",
+    trade: "EV Battery Service NSQF L5",
+    institution: "Govt ITI Ahmedabad West",
+    composite_score: 87.5,
+    verdict: "CERTIFIED_COMPETENT",
+    verified_badge: "SB-NSQF-2026-6180-AUTH",
+    verified_clip_duration: "High-voltage interlock isolated",
+    hiring_status: "Available for Immediate Plant Hire",
+    safety_score: 92,
+    practical_speed_rank: "Top 15%",
+    project_upload_tier: "Silver Tier (2 Drills)",
+    nsqf_level: 5,
+    viva_speech_score: 88,
+    procedural_score: 86,
+    uncertainty_rate: 2.5,
+    video_drills_count: 2,
+    key_skills: ["MSD Disconnect", "Arc-Flash Shield", "BMS Diagnostic Scan", "Cell Voltage Balancing"],
+    task_execution_time: "41 seconds"
+  },
+  {
+    candidate_id: "STUDENT_ITI_KA_2026_312",
+    name: "Deepa Hegde",
+    trade: "Electrician NSQF Level 4",
+    institution: "Govt ITI Bangalore Peenya",
+    composite_score: 89.2,
+    verdict: "CERTIFIED_COMPETENT",
+    verified_badge: "SB-NSQF-2026-7244-AUTH",
+    verified_clip_duration: "3-Phase distribution verified",
+    hiring_status: "Interview Scheduled with Schneider",
+    safety_score: 95,
+    practical_speed_rank: "Top 12%",
+    project_upload_tier: "Gold Tier (3+ Drills)",
+    nsqf_level: 4,
+    viva_speech_score: 89,
+    procedural_score: 91,
+    uncertainty_rate: 1.4,
+    video_drills_count: 3,
+    key_skills: ["3-Phase Load Balance", "Dielectric Stamp Verification", "Torque Clutch 2.4Nm", "Earth Fault Loop"],
+    task_execution_time: "34 seconds"
   }
 ];
+
+export const STUDENT_TREND_DATA: TrendDataPoint[] = [
+  {
+    week: "W1",
+    date: "24 Jul 2026",
+    compositeScore: 58.0,
+    safetyScore: 62.0,
+    proceduralScore: 55.0,
+    verbalScore: 57.0,
+    cohortAverage: 54.0,
+    topTenAverage: 78.0,
+    milestoneNote: "Orientation & Initial Diagnostic Lab"
+  },
+  {
+    week: "W2",
+    date: "31 Jul 2026",
+    compositeScore: 64.5,
+    safetyScore: 70.0,
+    proceduralScore: 62.0,
+    verbalScore: 61.5,
+    cohortAverage: 57.5,
+    topTenAverage: 81.0,
+    milestoneNote: "PPE Inspection & Tool Calibration"
+  },
+  {
+    week: "W3",
+    date: "07 Aug 2026",
+    compositeScore: 69.0,
+    safetyScore: 68.0,
+    proceduralScore: 71.0,
+    verbalScore: 68.0,
+    cohortAverage: 60.0,
+    topTenAverage: 84.5,
+    milestoneNote: "Single-Phase Breaker Wiring"
+  },
+  {
+    week: "W4",
+    date: "14 Aug 2026",
+    compositeScore: 72.0,
+    safetyScore: 75.0,
+    proceduralScore: 74.0,
+    verbalScore: 72.0,
+    cohortAverage: 62.5,
+    topTenAverage: 87.0,
+    milestoneNote: "Mid-Term Procedural Sequencing"
+  },
+  {
+    week: "W5",
+    date: "21 Aug 2026",
+    compositeScore: 75.5,
+    safetyScore: 82.0,
+    proceduralScore: 76.0,
+    verbalScore: 77.0,
+    cohortAverage: 64.0,
+    topTenAverage: 88.5,
+    milestoneNote: "CAT-III Multimeter Zero-Potential"
+  },
+  {
+    week: "W6",
+    date: "28 Aug 2026",
+    compositeScore: 73.0,
+    safetyScore: 65.0,
+    proceduralScore: 82.0,
+    verbalScore: 81.0,
+    cohortAverage: 65.2,
+    topTenAverage: 90.0,
+    milestoneNote: "Glove Occlusion Flag Logged"
+  },
+  {
+    week: "W7",
+    date: "04 Sep 2026",
+    compositeScore: 78.5,
+    safetyScore: 85.0,
+    proceduralScore: 84.0,
+    verbalScore: 85.0,
+    cohortAverage: 66.8,
+    topTenAverage: 91.5,
+    milestoneNote: "Remedial Dielectric Air Test Complete"
+  },
+  {
+    week: "W8",
+    date: "18 Sep 2026",
+    compositeScore: 84.2,
+    safetyScore: 92.0,
+    proceduralScore: 89.0,
+    verbalScore: 88.0,
+    cohortAverage: 68.5,
+    topTenAverage: 93.0,
+    milestoneNote: "Current Standing • NSQF L4 Practice"
+  }
+];
+
+export const GAMIFICATION_BADGES: GamificationBadge[] = [
+  {
+    id: "badge_dielectric_shield",
+    title: "1000V Dielectric Shield",
+    category: "SAFETY",
+    description: "Successfully performed full visual and physical roll-up air test on Class 0 safety gloves before live busbar de-energization.",
+    icon: "ShieldCheck",
+    unlocked: true,
+    progressPercent: 100,
+    earnedDate: "12 Sep 2026",
+    nsqfCode: "NOS_ELE_N0102_02",
+    digitalHash: "0x889A_PPE_1000V_VERIFIED",
+    criteria: "Zero glove removal violations across 3 consecutive 30fps audit runs."
+  },
+  {
+    id: "badge_zero_occlusion",
+    title: "Zero Occlusion Master",
+    category: "PRECISION",
+    description: "Maintained pristine 30fps unobstructed vision camera line-of-sight during fine terminal torque and wire insertion.",
+    icon: "Video",
+    unlocked: true,
+    progressPercent: 100,
+    earnedDate: "05 Sep 2026",
+    nsqfCode: "NOS_ELE_N0102_04",
+    digitalHash: "0x772B_CAM_LINE_SIGHT",
+    criteria: "Camera occlusion maintained below 10% during entire hands-on execution."
+  },
+  {
+    id: "badge_precision_stripper",
+    title: "Precision Conductor Stripper",
+    category: "PRECISION",
+    description: "Stripped stranded copper conductor to calibrated 11mm tolerance with zero nicked strands under high-resolution computer vision inspection.",
+    icon: "Zap",
+    unlocked: true,
+    progressPercent: 100,
+    earnedDate: "28 Aug 2026",
+    nsqfCode: "NOS_ELE_N0102_03",
+    digitalHash: "0x991C_COPPER_0_NICK",
+    criteria: "0 strand severing detected on 2.5mm² and 4.0mm² cable terminals."
+  },
+  {
+    id: "badge_verbal_ace",
+    title: "Verbal Reasoning Ace",
+    category: "VERBAL",
+    description: "Articulated lockout-tagout rationale, zero-voltage measurements, and grounding theory with >=90% technical coherence.",
+    icon: "Mic",
+    unlocked: true,
+    progressPercent: 100,
+    earnedDate: "15 Sep 2026",
+    nsqfCode: "NOS_ELE_N0102_VIVA",
+    digitalHash: "0x334D_NLP_SPEECH_92",
+    criteria: "Achieved >=90% score on Speech NLP Reasoning Agent."
+  },
+  {
+    id: "badge_streak_flame",
+    title: "14-Day Discipline Flame",
+    category: "DISCIPLINE",
+    description: "Logged into the Bridge verification engine and completed daily safety diagnostics for 14 consecutive calendar days.",
+    icon: "Flame",
+    unlocked: true,
+    progressPercent: 100,
+    earnedDate: "18 Sep 2026",
+    nsqfCode: "NOS_DISCIPLINE_14D",
+    digitalHash: "0x556E_DAILY_14D_STREAK",
+    criteria: "14 consecutive active training days verified in institutional log."
+  },
+  {
+    id: "badge_enterprise_gold",
+    title: "Enterprise Gold Seal",
+    category: "ENTERPRISE",
+    description: "Official dual-evidence credential pre-authorized by Schneider Electric & L&T for fast-track direct industrial hire.",
+    icon: "Award",
+    unlocked: false,
+    progressPercent: 80,
+    nsqfCode: "NOS_DGT_L4_GOLD",
+    digitalHash: "PENDING_FINAL_AUDIT",
+    criteria: "Complete 4 unedited assessment drills with >=90% composite score."
+  },
+  {
+    id: "badge_solar_specialist",
+    title: "Solar String Specialist",
+    category: "PRECISION",
+    description: "Safely calibrated DC open-circuit voltage string polarity without arc-flash hazard under simulated outdoor irradiance.",
+    icon: "Sun",
+    unlocked: false,
+    progressPercent: 50,
+    nsqfCode: "NOS_SOL_N0201_01",
+    criteria: "Pass Module 2 DC combiner splicing drill with zero reverse polarity errors."
+  },
+  {
+    id: "badge_ev_high_voltage",
+    title: "EV High-Voltage Master",
+    category: "SAFETY",
+    description: "Master manual service disconnect (MSD) safe interlock removal on 400V traction battery packs with Class 00 gloves.",
+    icon: "BatteryCharging",
+    unlocked: false,
+    progressPercent: 20,
+    nsqfCode: "NOS_AUT_N0304_02",
+    criteria: "Complete EV powertrain interlock drill with verified pre-charge zero energy."
+  }
+];
+
+export const REMEDIAL_LEARNING_RESOURCES: Record<string, {
+  title: string;
+  nsqfLevel: number;
+  failureDescription: string;
+  proceduralGuide: string[];
+  safetyChecklist: string[];
+  quiz: RemedialQuizQuestion[];
+}> = {
+  "NOS_ELE_N0102_02": {
+    title: "Personal Protective Equipment: 1000V Dielectric Gloves",
+    nsqfLevel: 4,
+    failureDescription: "62% of trainees remove their 1000V insulating gloves to manipulate small terminal screws, exposing hands to live arc-flash and electrocution hazards.",
+    proceduralGuide: [
+      "Step 1: Inspect gloves for air leaks using the manual roll-up inflation test prior to wearing.",
+      "Step 2: Check current dielectric inspection stamp (must be certified within last 6 months).",
+      "Step 3: Wear leather outer protector gloves over rubber insulating gloves to prevent mechanical tears.",
+      "Step 4: Keep gloves ON for the entire duration of breaker cabinet work until zero-potential is verified."
+    ],
+    safetyChecklist: [
+      "ASTM D120 / IEC 60903 Class 0 (1000V AC / 1500V DC) rated gloves verified",
+      "Roll-up air pressure test completed with no pinhole punctures",
+      "Cuff length exceeds wrist line by at least 2 inches",
+      "Zero grease, oil, or chemical residue on dielectric rubber surface"
+    ],
+    quiz: [
+      {
+        id: "q1",
+        question: "Why must insulating rubber gloves NEVER be worn without outer leather protector gloves in switchgear work?",
+        options: [
+          "Leather looks more professional to the inspector",
+          "Rubber is prone to mechanical puncture from burrs, screws, and sharp cable edges",
+          "Leather increases the electrical breakdown voltage by 5000V",
+          "Leather keeps the hands cooler under industrial shop lights"
+        ],
+        correctIndex: 1,
+        explanation: "Rubber gloves offer electrical resistance but zero mechanical cut resistance. A single microscopic scratch or puncture ruins the dielectric barrier.",
+        practicalTip: "Always slip on your leather protectors immediately after the roll-up air test."
+      },
+      {
+        id: "q2",
+        question: "When should the roll-up air test be conducted on Class 0 dielectric gloves?",
+        options: [
+          "Once every year during official audit",
+          "Only when the supervisor asks for inspection",
+          "Daily, immediately before entering the energized or de-energized cabinet",
+          "After finishing the entire electrical wiring job"
+        ],
+        correctIndex: 2,
+        explanation: "Roll-up air inflation must be done daily before starting any work to detect pinholes caused during storage or transport.",
+        practicalTip: "Roll from the cuff towards the fingertips and hold against your cheek to feel for escaping air."
+      },
+      {
+        id: "q3",
+        question: "If you struggle to manipulate an M3 terminal screw with 1000V gloves on, what is the approved NSQF procedure?",
+        options: [
+          "Briefly take off the glove on your dominant hand",
+          "Use a magnetic screw-holding insulated screwdriver bit while keeping gloves on",
+          "Have an un-gloved peer hold the screw for you",
+          "Skip the screw and tape the wire instead"
+        ],
+        correctIndex: 1,
+        explanation: "Removing gloves inside a panel is a critical safety violation. Use specialized insulated screw-starter or magnetic retaining tools.",
+        practicalTip: "Use certified VDE 1000V magnetic screwdrivers for small terminal screws."
+      }
+    ]
+  },
+  "NOS_ELE_N0102_01": {
+    title: "Mains Isolation & Zero-Potential Verification",
+    nsqfLevel: 4,
+    failureDescription: "38% of trainees test Phase-to-Neutral but forget to check Neutral-to-Earth and Phase-to-Earth, missing dangerous floating neutral voltage.",
+    proceduralGuide: [
+      "Step 1: Apply Lockout-Tagout (LOTO) padlock on upstream circuit breaker.",
+      "Step 2: Prove tester on known live source before opening cabinet (Live-Dead-Live method).",
+      "Step 3: Measure all 3 pairs: Phase to Neutral, Phase to Earth, and Neutral to Earth.",
+      "Step 4: Prove tester again on known live source immediately after measurement."
+    ],
+    safetyChecklist: [
+      "CAT-III 600V or CAT-IV 1000V multimeter leads in calibrated condition",
+      "LOTO safety padlock attached with trainee identity tag",
+      "Live-Dead-Live three-step calibration completed",
+      "Residual voltage verified strictly at 0.00V (<5V safety threshold)"
+    ],
+    quiz: [
+      {
+        id: "q1",
+        question: "What is the primary purpose of the 'Live-Dead-Live' multimeter protocol?",
+        options: [
+          "To test if the multimeter battery has run out during measurement",
+          "To guarantee the voltmeter is functioning before and after reading zero volts",
+          "To recharge the internal capacitors of the test probe",
+          "To verify the multimeter calibration stamp with the proctor"
+        ],
+        correctIndex: 1,
+        explanation: "A blown meter fuse can display '0.00V' on a 415V live busbar, leading to fatal electrocution. Live-Dead-Live verifies meter integrity.",
+        practicalTip: "Check live source -> check test circuit (0V) -> check live source again."
+      },
+      {
+        id: "q2",
+        question: "In a 3-phase 4-wire installation, how many individual potential measurements are required to prove complete de-energization?",
+        options: [
+          "Only 1 measurement across the main incoming switch",
+          "3 measurements (L1-L2, L2-L3, L3-L1)",
+          "10 measurements (all phase-phase, phase-neutral, phase-earth, neutral-earth)",
+          "2 measurements (Phase to Neutral and Earth)"
+        ],
+        correctIndex: 2,
+        explanation: "All phase-to-phase (3), phase-to-neutral (3), phase-to-earth (3), and neutral-to-earth (1) must be verified dead (10 total).",
+        practicalTip: "Never assume neutral or earth cannot carry return or back-feed current."
+      }
+    ]
+  },
+  "NOS_ELE_N0102_03": {
+    title: "Clean Conductor Stripping (0 Nick Standard)",
+    nsqfLevel: 4,
+    failureDescription: "41% of trainees use dull diagonal cutters instead of wire strippers, resulting in severed copper strands that lead to hot spots.",
+    proceduralGuide: [
+      "Step 1: Select the gauge-matched stripping notch for the conductor size (e.g. 2.5mm²).",
+      "Step 2: Score insulation without biting into the copper core.",
+      "Step 3: Slide insulation slug off smoothly along the conductor axis.",
+      "Step 4: Visually inspect under light: 0 nicked, severed, or bent strands allowed."
+    ],
+    safetyChecklist: [
+      "Automatic or calibrated multi-gauge wire stripper used",
+      "Strip length measured with terminal strip gauge (exact 11mm)",
+      "Zero cut strands across the entire stranded bunch",
+      "Clean linear conductor without twist deformities"
+    ],
+    quiz: [
+      {
+        id: "q1",
+        question: "What is the fire hazard caused by nicked or severed strands inside an MCB terminal?",
+        options: [
+          "The breaker will trip immediately due to low voltage",
+          "Reduced copper cross-section creates a high-resistance hot spot under current load",
+          "Severed strands attract excessive electromagnetic interference",
+          "The insulation will expand and cause mechanical jam"
+        ],
+        correctIndex: 1,
+        explanation: "Severing even 2-3 strands reduces the wire's ampacity, creating localized resistive heating that can melt breaker housings.",
+        practicalTip: "Inspect every stripped tip with a magnifying loupe or smartphone macro camera before torquing."
+      }
+    ]
+  },
+  "NOS_ELE_N0102_04": {
+    title: "Terminal Screw Torque & Mechanical Pull Test",
+    nsqfLevel: 4,
+    failureDescription: "29% of trainees under-torque terminal screws or rely on manual guessing, causing loose connections that fail during thermal expansion.",
+    proceduralGuide: [
+      "Step 1: Verify manufacturer torque specification (e.g., 2.4 Nm for 32A MCB).",
+      "Step 2: Adjust calibrated torque screwdriver clutch to exact setting.",
+      "Step 3: Tighten until audible clutch slip is heard and captured by audio audit.",
+      "Step 4: Perform sustained mechanical pull test (5kg pull force for 3 seconds)."
+    ],
+    safetyChecklist: [
+      "Calibrated VDE torque screwdriver used (calibrated within 12 months)",
+      "Correct PZ2 / Pozidriv bit matched to terminal screw head",
+      "Audible torque clutch slip captured in assessment recording",
+      "Sustained linear pull test executed with zero wire displacement"
+    ],
+    quiz: [
+      {
+        id: "q1",
+        question: "Why is hand-tightening with a standard screwdriver prohibited under NSQF Level 4 terminal inspection?",
+        options: [
+          "Standard screwdrivers have smaller grips",
+          "Human hand perception cannot reliably distinguish between 1.5 Nm and 2.8 Nm",
+          "Standard screwdrivers cause static electrical discharge",
+          "Inspectors prefer digital instruments only"
+        ],
+        correctIndex: 1,
+        explanation: "Hand-tightening causes severe under-torquing (arcing risk) or over-torquing (stripped threads and fractured copper).",
+        practicalTip: "Always set your torque clutch and listen for the calibrated click."
+      }
+    ]
+  },
+  "NOS_SOL_N0201_01": {
+    title: "DC String Open-Circuit Voltage Polarity Check",
+    nsqfLevel: 4,
+    failureDescription: "45% of trainees touch multimeter probes to DC string terminals without confirming polarity or wearing arc-rated face shields.",
+    proceduralGuide: [
+      "Step 1: Don arc-flash face shield and safety glasses before opening DC combiner box.",
+      "Step 2: Set multimeter to DC Volts 1000V range.",
+      "Step 3: Connect red probe to positive string terminal, black probe to negative.",
+      "Step 4: Verify open-circuit voltage matches irradiance calculation and polarity is positive."
+    ],
+    safetyChecklist: [
+      "NFPA 70E / NSQF Arc-rated face shield (minimum 8 cal/cm²)",
+      "Multimeter set to DC voltage mode (not AC or Current)",
+      "Solar irradiance measured with pyranometer for expected Voc comparison",
+      "MC4 connector latch integrity confirmed"
+    ],
+    quiz: [
+      {
+        id: "q1",
+        question: "What occurs if you attempt to disconnect an MC4 solar connector while DC load current is flowing?",
+        options: [
+          "The solar panel shuts down automatically",
+          "A continuous DC electric arc will ignite, which does not self-extinguish at zero-crossings",
+          "The multimeter fuse will blow",
+          "The battery charge controller switches to sleep mode"
+        ],
+        correctIndex: 1,
+        explanation: "Unlike AC, DC current does not pass through zero. A sustained arc can cause severe flash burns and ignite combiner boxes.",
+        practicalTip: "Always de-energize the DC load breaker before uncoupling any MC4 connectors."
+      }
+    ]
+  },
+  "NOS_AUT_N0304_02": {
+    title: "High-Voltage Interlock Loop (HVIL) Disconnect",
+    nsqfLevel: 5,
+    failureDescription: "54% of trainees remove the manual service disconnect (MSD) too quickly without waiting for pre-charge capacitor discharge.",
+    proceduralGuide: [
+      "Step 1: Switch vehicle ignition OFF and disconnect 12V auxiliary battery ground.",
+      "Step 2: Don Class 0 1000V rated gloves and full arc-flash PPE.",
+      "Step 3: Unlatch the Manual Service Disconnect (MSD) safety lock lever.",
+      "Step 4: Wait 5 minutes for inverter DC-bus capacitor discharge before measuring zero-volts."
+    ],
+    safetyChecklist: [
+      "12V auxiliary system fully isolated and locked out",
+      "Class 0 (1000V) electrical insulating gloves worn and verified",
+      "5-minute capacitor dissipation timer observed",
+      "Zero energy state verified across inverter DC bus terminals (<50V DC)"
+    ],
+    quiz: [
+      {
+        id: "q1",
+        question: "Why must you wait at least 5 minutes after pulling the EV Manual Service Disconnect (MSD)?",
+        options: [
+          "To allow the coolant fluid to circulate back to the reservoir",
+          "To allow internal high-voltage DC capacitors to bleed down through bleed resistors",
+          "To allow the BMS microcontroller to upload telemetry to the cloud",
+          "To allow the contactor coil to cool down to room temperature"
+        ],
+        correctIndex: 1,
+        explanation: "High-voltage capacitors retain lethal 400V-800V charges for minutes after disconnection until internal discharge resistors bleed the charge.",
+        practicalTip: "Always check your stopwatch for the full 5-minute wait, then verify with a CAT-IV meter."
+      }
+    ]
+  }
+};
+

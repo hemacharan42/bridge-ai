@@ -186,6 +186,49 @@ export interface CandidateItem {
   hiring_status: string;
   safety_score: number;
   practical_speed_rank: string;
+  project_upload_tier?: "Gold Tier (3+ Drills)" | "Silver Tier (2 Drills)" | "Bronze Tier (1 Drill)";
+  nsqf_level?: number;
+  viva_speech_score?: number;
+  procedural_score?: number;
+  uncertainty_rate?: number;
+  video_drills_count?: number;
+  key_skills?: string[];
+  task_execution_time?: string;
+}
+
+export interface GamificationBadge {
+  id: string;
+  title: string;
+  category: "SAFETY" | "PRECISION" | "DISCIPLINE" | "VERBAL" | "ENTERPRISE";
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  progressPercent: number;
+  earnedDate?: string;
+  nsqfCode: string;
+  digitalHash?: string;
+  criteria: string;
+}
+
+export interface TrendDataPoint {
+  week: string;
+  date: string;
+  compositeScore: number;
+  safetyScore: number;
+  proceduralScore: number;
+  verbalScore: number;
+  cohortAverage: number;
+  topTenAverage: number;
+  milestoneNote?: string;
+}
+
+export interface RemedialQuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  practicalTip: string;
 }
 
 export interface FacultyQueueItem {
