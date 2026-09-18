@@ -11,12 +11,14 @@ import {
   ShieldCheck, 
   Clock, 
   Award,
-  Sparkles
+  Sparkles,
+  BookOpen,
+  Video
 } from "lucide-react";
 
 interface StudentOnboardingModalProps {
   isOpen: boolean;
-  onComplete: () => void;
+  onComplete: (action?: "join-course" | "test-case") => void;
 }
 
 export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({ isOpen, onComplete }) => {
@@ -41,9 +43,9 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({ 
     }
   };
 
-  const handleSubmit = () => {
+  const handleAction = (action: "join-course" | "test-case") => {
     completeOnboarding(selectedId);
-    onComplete();
+    onComplete(action);
   };
 
   return (
@@ -138,21 +140,34 @@ export const StudentOnboardingModal: React.FC<StudentOnboardingModalProps> = ({ 
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Dual Action Options: Join Course vs Test Case */}
         <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
           <div className="text-xs text-slate-500 font-mono flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Dual-modal audio + video evaluation standard active</span>
           </div>
-          <button
-            type="button"
-            id="onboarding-confirm-btn"
-            onClick={handleSubmit}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20"
-          >
-            <span>Start Learning Experience</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              id="onboarding-join-course-btn"
+              onClick={() => handleAction("join-course")}
+              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <span>Join Course</span>
+            </button>
+
+            <button
+              type="button"
+              id="onboarding-test-case-btn"
+              onClick={() => handleAction("test-case")}
+              className="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-amber-400 hover:from-cyan-300 hover:to-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/20 cursor-pointer"
+            >
+              <Video className="w-4 h-4 fill-current" />
+              <span>Test Case</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

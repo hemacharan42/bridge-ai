@@ -22,12 +22,15 @@ import { StudentProgressSummary } from "./StudentProgressSummary";
 import { GamificationStreak } from "./GamificationStreak";
 import { BadgesShowcase } from "./BadgesShowcase";
 import { AdvancedMediaUpload } from "./AdvancedMediaUpload";
+import { CourseDetailView } from "../course/CourseDetailView";
+import { TestCaseVideoInterface } from "../course/TestCaseVideoInterface";
 
 interface StudentDashboardProps {
   onStartAssessment: () => void;
   onViewScorecard: () => void;
   onOpenSideBySide: () => void;
   onOpenNewCourse: () => void;
+  initialSubView?: "OVERVIEW" | "COURSE_INTERFACE" | "TEST_CASE";
 }
 
 /**
@@ -44,9 +47,37 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   onViewScorecard,
   onOpenSideBySide,
   onOpenNewCourse,
+  initialSubView = "OVERVIEW",
 }) => {
   const { currentUser, selectedCourse, courses, selectCourse, updateCourseCompletedModules } = useAssessment();
   const [activeBadgeModal, setActiveBadgeModal] = useState<SkillMasteryItem | null>(null);
+  const [dashboardView, setDashboardView] = useState<"OVERVIEW" | "COURSE_INTERFACE" | "TEST_CASE">(initialSubView);
+
+  // If in Course Interface view (Join Course)
+  if (dashboardView === "COURSE_INTERFACE") {
+    return (
+      <CourseDetailView
+        course={selectedCourse}
+        onBackToCourses={() => setDashboardView("OVERVIEW")}
+        onLaunchTestCase={(courseId) => {
+          selectCourse(courseId);
+          setDashboardView("TEST_CASE");
+        }}
+      />
+    );
+  }
+
+  // If in Test Case view (Video Input, Start Test, Self-Checking, Re-confirm, Score Analysis)
+  if (dashboardView === "TEST_CASE") {
+    return (
+      <TestCaseVideoInterface
+        course={selectedCourse}
+        onBackToCourse={() => setDashboardView("COURSE_INTERFACE")}
+        onBackToDashboard={() => setDashboardView("OVERVIEW")}
+        onViewScorecard={onViewScorecard}
+      />
+    );
+  }
 
   const completedModulesCount = selectedCourse.completedModules || 1;
   const totalModulesCount = selectedCourse.totalModules || 4;
@@ -101,6 +132,36 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   return (
     <div className="space-y-10 animate-in fade-in duration-300 pb-12">
+      {/* QUICK WORKFLOW SWITCH BAR */}
+      <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-mono text-slate-400">Active Qualification:</span>
+          <span className="text-xs font-bold text-white bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
+            {selectedCourse.title}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setDashboardView("COURSE_INTERFACE")}
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-cyan-300 font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Join Course (Videos &amp; Details)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDashboardView("TEST_CASE")}
+            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-400 to-amber-400 hover:from-cyan-300 hover:to-amber-300 text-slate-950 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm shadow-cyan-500/20 cursor-pointer"
+          >
+            <Video className="w-3.5 h-3.5 fill-current" />
+            <span>Test Case Studio</span>
+          </button>
+        </div>
+      </div>
+
       {/* ========================================================
        * 1. CENTRALIZED DASHBOARD: PROGRESS SUMMARY & JOB READINESS
        * ======================================================== */}
@@ -177,16 +238,26 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               />
             </div>
 
-            {/* Primary Action Buttons */}
+            {/* Primary Action Buttons: Join Course vs Test Case */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="button"
-                id="continue-course-btn"
-                onClick={onStartAssessment}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                id="join-active-course-btn"
+                onClick={() => setDashboardView("COURSE_INTERFACE")}
+                className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
               >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Continue Assessment (Module 2)</span>
+                <BookOpen className="w-4 h-4" />
+                <span>Join Course (View Details &amp; Videos)</span>
+              </button>
+
+              <button
+                type="button"
+                id="test-case-active-course-btn"
+                onClick={() => setDashboardView("TEST_CASE")}
+                className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-amber-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+              >
+                <Video className="w-4 h-4 fill-current" />
+                <span>Test Case (Video Input &amp; Models)</span>
               </button>
 
               <button
@@ -195,7 +266,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Video className="w-4 h-4 text-cyan-400" />
-                <span>Open Side-by-Side Player</span>
+                <span>Side-by-Side Player</span>
               </button>
             </div>
           </div>
@@ -395,8 +466,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                   </div>
                 </div>
 
-                {/* Current pending drill & action */}
-                <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2 mt-1">
+                {/* Current pending drill & Dual Action: Join Course vs Test Case */}
+                <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mt-1">
                   <div className="min-w-0 pr-2">
                     <div className="text-[10px] uppercase font-mono tracking-wider text-slate-500">
                       Current Task
@@ -406,28 +477,33 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </div>
                   </div>
 
-                  {isCurrent ? (
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       type="button"
-                      onClick={onStartAssessment}
-                      className="px-3 py-1.5 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 text-xs font-mono text-cyan-300 hover:text-white flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-                    >
-                      <span>Resume</span>
-                      <Play className="w-3 h-3 fill-current" />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
+                      id={`join-course-btn-${course.id}`}
                       onClick={() => {
                         selectCourse(course.id);
-                        onStartAssessment();
+                        setDashboardView("COURSE_INTERFACE");
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono text-cyan-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <span>Open Course</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>Join Course</span>
                     </button>
-                  )}
+
+                    <button
+                      type="button"
+                      id={`test-case-btn-${course.id}`}
+                      onClick={() => {
+                        selectCourse(course.id);
+                        setDashboardView("TEST_CASE");
+                      }}
+                      className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-amber-400 hover:from-cyan-300 hover:to-amber-300 text-slate-950 font-mono font-bold text-xs flex items-center gap-1.5 shadow-sm shadow-cyan-500/20 transition-all cursor-pointer"
+                    >
+                      <Video className="w-3.5 h-3.5 fill-current" />
+                      <span>Test Case</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -443,7 +519,10 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       {/* ========================================================
        * 6. ADVANCED MEDIA UPLOAD & SELF-REVIEW STUDIO
        * ======================================================== */}
-      <AdvancedMediaUpload />
+      <AdvancedMediaUpload
+        onStartAssessment={onStartAssessment}
+        onViewScorecard={onViewScorecard}
+      />
 
       {/* ========================================================
        * 7. DETAILED NSQF MODULE BREAKDOWN & DRILL LAUNCHER

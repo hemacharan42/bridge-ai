@@ -20,6 +20,7 @@ const MainLayout: React.FC = () => {
   const [preLoginRoute, setPreLoginRoute] = useState<PreLoginRoute>("landing");
   const [postLoginView, setPostLoginView] = useState<PostLoginView>("dashboard");
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
+  const [studentInitialSubView, setStudentInitialSubView] = useState<"OVERVIEW" | "COURSE_INTERFACE" | "TEST_CASE">("OVERVIEW");
 
   // Synchronize initial post-login view based on user role
   useEffect(() => {
@@ -100,6 +101,8 @@ const MainLayout: React.FC = () => {
     <PostLoginShell currentView={postLoginView} onSelectView={setPostLoginView}>
       {postLoginView === "dashboard" && (
         <StudentDashboard
+          key={studentInitialSubView}
+          initialSubView={studentInitialSubView}
           onStartAssessment={() => setPostLoginView("side-by-side")}
           onViewScorecard={() => setPostLoginView("scorecard")}
           onOpenSideBySide={() => setPostLoginView("side-by-side")}
@@ -137,9 +140,16 @@ const MainLayout: React.FC = () => {
       {/* First-Time Course Selection Modal for Students */}
       <StudentOnboardingModal
         isOpen={showOnboarding}
-        onComplete={() => {
+        onComplete={(action) => {
           setShowOnboarding(false);
           setPostLoginView("dashboard");
+          if (action === "join-course") {
+            setStudentInitialSubView("COURSE_INTERFACE");
+          } else if (action === "test-case") {
+            setStudentInitialSubView("TEST_CASE");
+          } else {
+            setStudentInitialSubView("OVERVIEW");
+          }
         }}
       />
     </PostLoginShell>

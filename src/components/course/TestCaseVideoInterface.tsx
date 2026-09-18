@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
+import { Course } from "../../types";
 import { 
-  UploadCloud, 
   Video, 
+  UploadCloud, 
   CheckCircle2, 
   AlertCircle, 
   Play, 
@@ -13,22 +14,31 @@ import {
   Clock, 
   FileText, 
   X, 
-  ChevronRight,
-  Sliders,
-  Zap,
-  Check,
-  Eye,
-  Volume2,
-  VolumeX,
-  SlidersHorizontal,
-  Award,
-  Download,
-  ExternalLink,
-  Layers,
+  ChevronRight, 
+  Sliders, 
+  Zap, 
+  Check, 
+  Eye, 
+  Volume2, 
+  VolumeX, 
+  Award, 
+  Download, 
+  ArrowLeft, 
   ArrowRight,
-  ShieldAlert
+  ShieldAlert,
+  Layers,
+  HelpCircle
 } from "lucide-react";
 import confetti from "canvas-confetti";
+
+interface TestCaseVideoInterfaceProps {
+  course: Course;
+  onBackToCourse: () => void;
+  onBackToDashboard: () => void;
+  onViewScorecard?: () => void;
+}
+
+type EnhancementPreset = "SUPER_RESOLUTION" | "LOW_LIGHT_BOOST" | "EDGE_SHARPEN" | "NATURAL";
 
 interface SelfTagItem {
   id: string;
@@ -37,15 +47,10 @@ interface SelfTagItem {
   category: "SAFETY" | "PROCEDURE" | "VIVA";
 }
 
-interface AdvancedMediaUploadProps {
-  onStartAssessment?: () => void;
-  onViewScorecard?: () => void;
-}
-
-type EnhancementPreset = "SUPER_RESOLUTION" | "LOW_LIGHT_BOOST" | "EDGE_SHARPEN" | "NATURAL";
-
-export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
-  onStartAssessment,
+export const TestCaseVideoInterface: React.FC<TestCaseVideoInterfaceProps> = ({
+  course,
+  onBackToCourse,
+  onBackToDashboard,
   onViewScorecard,
 }) => {
   const [dragOver, setDragOver] = useState(false);
@@ -54,15 +59,28 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
     sizeMb: number;
     url: string;
   } | null>({
-    name: "WhatsApp Video 2026-09-19 at 2.58.26 AM.mp4",
-    sizeMb: 6.2,
+    name: "Workshop_Practical_ZeroPotential_Audit_2026.mp4",
+    sizeMb: 8.4,
     url: "",
   });
 
-  // Upload Progression States
+  // Upload status states
   const [uploadStatus, setUploadStatus] = useState<"IDLE" | "UPLOADING" | "COMPLETE" | "ERROR">("COMPLETE");
   const [uploadProgress, setUploadProgress] = useState(100);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Workflow Phases:
+  // "INPUT" -> Video submission / "Start Test"
+  // "ANALYZING" -> Models running through video
+  // "SELF_CHECK" -> Video provided for self-checking
+  // "CONFIRMING" -> Modal / confirmation prompt
+  // "SCORE_ANALYSIS" -> Detailed score analysis unlocked
+  const [testWorkflowPhase, setTestWorkflowPhase] = useState<
+    "INPUT" | "ANALYZING" | "SELF_CHECK" | "SCORE_ANALYSIS"
+  >("SELF_CHECK");
+
+  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
+  const [isConfirmedSubmitted, setIsConfirmedSubmitted] = useState<boolean>(false);
 
   // Video Playback States
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -77,16 +95,17 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
   const [enhancementPreset, setEnhancementPreset] = useState<EnhancementPreset>("SUPER_RESOLUTION");
   const [showAiOverlayHud, setShowAiOverlayHud] = useState(true);
 
-  // Self-Tagging Annotations
+  // Model progress messages
+  const [auditStepMessage, setAuditStepMessage] = useState("");
+  const [auditStepIndex, setAuditStepIndex] = useState(0);
+
+  // Self-Tags
   const [selfTags, setSelfTags] = useState<SelfTagItem[]>([
     { id: "tag-1", timeSeconds: 8.2, label: "LOTO Lock Applied & Zero Voltage Verified", category: "SAFETY" },
     { id: "tag-2", timeSeconds: 16.4, label: "11mm Clean Conductor Stripping (0 Nick)", category: "PROCEDURE" },
   ]);
 
-  // AI Pre-flight Analysis / "Start Test" States
-  const [isAuditing, setIsAuditing] = useState(false);
-  const [auditStepMessage, setAuditStepMessage] = useState("");
-  const [auditCompleted, setAuditCompleted] = useState(false);
+  // Score Analysis Tab
   const [activeScoreTab, setActiveScoreTab] = useState<"SUMMARY" | "CHECKPOINTS" | "TELEMETRY">("SUMMARY");
 
   const [auditResult, setAuditResult] = useState<{
@@ -106,7 +125,7 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
       category: "SAFETY" | "PROCEDURE" | "INTEGRITY";
       details: string;
     }[];
-  } | null>({
+  }>({
     compositeScore: 94.8,
     confidence: 97.4,
     ppeScore: 96.5,
@@ -117,8 +136,8 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
     verdict: "COMPETENT",
     notes: [
       "Zero electrocution hazard: Class 0 1000V gloves detected throughout isolation step.",
-      "Frame clarity optimal: 30fps with camera occlusion below 8%.",
-      "Torque clutch audio spike detected at 2.4 Nm standard."
+      "Frame clarity optimal: AI Super-Resolution enhanced; camera occlusion below 6%.",
+      "Torque clutch slip audio spike clearly detected at 2.4 Nm standard."
     ],
     timelineBreakdown: [
       {
@@ -161,35 +180,15 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync video time
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTimeSec(videoRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (videoRef.current && videoRef.current.duration) {
-      setDurationSec(videoRef.current.duration);
-    }
-  };
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-  };
-
   const handleValidateAndUpload = (file: File) => {
     setErrorMessage(null);
-
-    // Validate type
     const validTypes = ["video/mp4", "video/webm", "video/quicktime"];
     if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|webm|mov)$/i)) {
-      setErrorMessage("Unsupported file format. Please upload an MP4, WebM, or MOV video file.");
+      setErrorMessage("Unsupported format. Please upload MP4, WebM, or MOV video.");
       setUploadStatus("ERROR");
       return;
     }
 
-    // Validate size (max 150MB)
     const sizeMb = file.size / (1024 * 1024);
     if (sizeMb > 150) {
       setErrorMessage(`File size (${sizeMb.toFixed(1)}MB) exceeds maximum limit of 150MB.`);
@@ -204,27 +203,23 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
       url: objectUrl,
     });
 
-    setAuditCompleted(false);
     setUploadStatus("UPLOADING");
     setUploadProgress(0);
 
     let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 18) + 12;
+      progress += Math.floor(Math.random() * 20) + 15;
       if (progress >= 100) {
         progress = 100;
         clearInterval(interval);
         setUploadProgress(100);
         setUploadStatus("COMPLETE");
-        confetti({
-          particleCount: 50,
-          spread: 60,
-          origin: { y: 0.7 },
-        });
+        setTestWorkflowPhase("INPUT");
+        confetti({ particleCount: 40, spread: 50 });
       } else {
         setUploadProgress(progress);
       }
-    }, 180);
+    }, 160);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -241,6 +236,47 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
     }
   };
 
+  /**
+   * "START TEST":
+   * Runs the multimodal models through the video payload
+   */
+  const handleStartTest = () => {
+    setTestWorkflowPhase("ANALYZING");
+    setAuditStepIndex(1);
+    setAuditStepMessage("Decompressing 30fps frames & tracking video telemetry...");
+
+    setTimeout(() => {
+      setAuditStepIndex(2);
+      setAuditStepMessage("Enforcing Class 0 1000V PPE & Zero-Potential LOTO verification...");
+    }, 650);
+
+    setTimeout(() => {
+      setAuditStepIndex(3);
+      setAuditStepMessage("Auditing ocular gaze vectors & proctoring integrity...");
+    }, 1300);
+
+    setTimeout(() => {
+      setAuditStepIndex(4);
+      setAuditStepMessage("Enhancing video stream & generating HUD self-checking container...");
+    }, 1950);
+
+    setTimeout(() => {
+      setTestWorkflowPhase("SELF_CHECK");
+      confetti({ particleCount: 60, spread: 60, origin: { y: 0.65 } });
+    }, 2500);
+  };
+
+  /**
+   * RE-CONFIRM SUBMISSION:
+   * Final confirmation step locking submission for faculty and revealing detailed score analysis
+   */
+  const handleExecuteFinalSubmission = () => {
+    setShowConfirmModal(false);
+    setIsConfirmedSubmitted(true);
+    setTestWorkflowPhase("SCORE_ANALYSIS");
+    confetti({ particleCount: 90, spread: 80, origin: { y: 0.5 } });
+  };
+
   const handleAddTag = (label: string, category: "SAFETY" | "PROCEDURE" | "VIVA") => {
     const newTag: SelfTagItem = {
       id: `tag-${Date.now()}`,
@@ -251,104 +287,13 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
     setSelfTags((prev) => [...prev, newTag]);
   };
 
-  /**
-   * "START TEST" / RUN PRE-AUDIT EXECUTION
-   * Executes multi-stage AI audit immediately upon click
-   */
-  const handleStartTest = () => {
-    setIsAuditing(true);
-    setAuditCompleted(false);
-
-    // Multi-stage audit progress simulation
-    setAuditStepMessage("Decoding 30fps frames & tracking video telemetry...");
-    
-    setTimeout(() => {
-      setAuditStepMessage("Enforcing Class 0 1000V PPE & Zero-Potential LOTO verification...");
-    }, 600);
-
-    setTimeout(() => {
-      setAuditStepMessage("Auditing ocular gaze vectors & proctoring integrity...");
-    }, 1200);
-
-    setTimeout(() => {
-      setAuditStepMessage("Compiling NSQF Level 4 Practical Competency Scorecard...");
-    }, 1800);
-
-    setTimeout(() => {
-      setIsAuditing(false);
-      setAuditCompleted(true);
-      setAuditResult({
-        compositeScore: 94.8,
-        confidence: 97.4,
-        ppeScore: 96.5,
-        proceduralScore: 93.0,
-        speedScore: 90.2,
-        integrityScore: 99.1,
-        vivaReadiness: "High Technical Coherence",
-        verdict: "COMPETENT",
-        notes: [
-          "Zero electrocution hazard: Class 0 1000V gloves detected throughout isolation step.",
-          "Frame clarity optimal: AI Super-Resolution enhanced; camera occlusion below 6%.",
-          "Torque clutch slip audio spike clearly detected at 2.4 Nm standard."
-        ],
-        timelineBreakdown: [
-          {
-            time: "00:03.2",
-            title: "Main 32A Feeder Switch De-energized (LOTO Locked)",
-            status: "PASS",
-            category: "SAFETY",
-            details: "Isolator lever manually positioned down; padlock and danger tag applied."
-          },
-          {
-            time: "00:08.2",
-            title: "Class 0 1000V Dielectric Gloves Donned & Inspected",
-            status: "PASS",
-            category: "SAFETY",
-            details: "Roll-up air retention test verified visually. Zero puncture detected."
-          },
-          {
-            time: "00:14.6",
-            title: "CAT-III Multimeter Live-Dead-Live Zero-Potential Check",
-            status: "PASS",
-            category: "PROCEDURE",
-            details: "0.00V verified across L1-N, L2-N, and L3-E before direct contact."
-          },
-          {
-            time: "00:22.1",
-            title: "11mm Clean Conductor Stripping (0 Copper Strand Nicking)",
-            status: "PASS",
-            category: "PROCEDURE",
-            details: "Calibrated strippers used; core intact without gouges."
-          },
-          {
-            time: "00:31.4",
-            title: "Calibrated Torque Wrench Mechanical Clutch Slip (2.4 Nm)",
-            status: "PASS",
-            category: "PROCEDURE",
-            details: "Audible click registered; zero terminal over-tightening."
-          }
-        ]
-      });
-
-      confetti({
-        particleCount: 75,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    }, 2400);
-  };
-
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
         setIsPlaying(false);
       } else {
-        videoRef.current.play().then(() => {
-          setIsPlaying(true);
-        }).catch(() => {
-          setIsPlaying(true);
-        });
+        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(true));
       }
     } else {
       setIsPlaying(!isPlaying);
@@ -362,14 +307,6 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
     }
   };
 
-  const changePlaybackRate = (rate: number) => {
-    setPlaybackRate(rate);
-    if (videoRef.current) {
-      videoRef.current.playbackRate = rate;
-    }
-  };
-
-  // Video enhancement filter mapping
   const getEnhancementStyle = () => {
     if (!isEnhanced) return {};
     switch (enhancementPreset) {
@@ -385,35 +322,86 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
-        <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Video className="w-5 h-5 text-cyan-400" />
-            <span>Practice Video Upload &amp; Self-Review Studio</span>
-          </h3>
-          <p className="text-xs text-slate-400 font-light mt-0.5">
-            Upload workshop footage to view AI-enhanced playback and execute immediate "Start Test" pre-audit analysis
-          </p>
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
+      {/* BREADCRUMB & HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-800">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onBackToCourse}
+            className="text-xs font-mono text-slate-400 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>{course.title}</span>
+          </button>
+          <span className="text-slate-600">/</span>
+          <span className="text-xs font-mono text-cyan-400 font-bold">
+            Practical Test Case Studio
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>AI Super-Resolution Active</span>
+        {/* WORKFLOW STEPPER INDICATOR */}
+        <div className="flex items-center gap-2 text-[11px] font-mono">
+          <span className={`px-2.5 py-1 rounded-full border ${
+            testWorkflowPhase === "INPUT"
+              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold"
+              : "bg-slate-900 text-slate-400 border-slate-800"
+          }`}>
+            1. Video Input
           </span>
-          <span className="text-xs font-mono px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
-            30 FPS Verified
+          <ChevronRight className="w-3 h-3 text-slate-600" />
+          <span className={`px-2.5 py-1 rounded-full border ${
+            testWorkflowPhase === "SELF_CHECK"
+              ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold"
+              : "bg-slate-900 text-slate-400 border-slate-800"
+          }`}>
+            2. Self-Check Footage
+          </span>
+          <ChevronRight className="w-3 h-3 text-slate-600" />
+          <span className={`px-2.5 py-1 rounded-full border ${
+            testWorkflowPhase === "SCORE_ANALYSIS"
+              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold"
+              : "bg-slate-900 text-slate-400 border-slate-800"
+          }`}>
+            3. Score Analysis
           </span>
         </div>
       </div>
 
+      {/* TASK CONTEXT BANNER */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold bg-cyan-950/60 px-2.5 py-0.5 rounded border border-cyan-500/30">
+              Assigned Task
+            </span>
+            <span className="text-xs font-mono text-slate-400">
+              Task Code: {course.currentTaskId} • NSQF Level {course.nsqfLevel}
+            </span>
+          </div>
+          <h2 className="text-base sm:text-lg font-bold text-white">
+            {course.currentTaskTitle}
+          </h2>
+          <p className="text-xs text-slate-400 font-light max-w-2xl">
+            Execute Lockout-Tagout (LOTO), verify zero-potential with CAT-III multimeter across 3 test points, and apply 2.4 Nm calibrated torque on terminal busbars.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onBackToCourse}
+          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-semibold transition-colors shrink-0 cursor-pointer self-start sm:self-auto"
+        >
+          View Lesson Details
+        </button>
+      </div>
+
+      {/* =========================================================
+       * STEP 1: VIDEO INPUT INTERFACE & "START TEST" BUTTON
+       * ========================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* =========================================================
-         * LEFT: DRAG-AND-DROP UPLOAD ZONE & "START TEST" TRIGGER
-         * ========================================================= */}
         <div className="lg:col-span-5 space-y-4">
+          {/* UPLOAD CONTAINER */}
           <div
             onDragOver={(e) => {
               e.preventDefault();
@@ -424,7 +412,7 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
             className={`p-6 sm:p-7 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center space-y-3.5 relative overflow-hidden ${
               dragOver
                 ? "bg-cyan-500/10 border-cyan-400 shadow-xl shadow-cyan-500/10"
-                : "bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80"
+                : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
             }`}
           >
             <input
@@ -441,139 +429,102 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
 
             <div className="space-y-1">
               <h4 className="text-sm font-bold text-white">
-                Drag &amp; Drop Workshop Assessment Video
+                Submit Workshop Practical Video
               </h4>
               <p className="text-xs text-slate-400 max-w-sm">
-                Supports MP4, WebM, or MOV up to 150MB. Ensure your workbench, hands, and multimeter display are clearly framed.
+                Ensure workbench, hands, dielectric gloves, and multimeter display are clearly visible in the video frame.
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-mono text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
-              >
-                <span>Browse Local Files</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white font-mono text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <span>Browse Assessment Video</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
 
-            <div className="flex items-center gap-3 text-[10px] font-mono text-slate-500 pt-2 border-t border-slate-800/80 w-full justify-center">
-              <span>Auto-checksum SHA-256</span>
-              <span>•</span>
-              <span>1080p/720p 30fps</span>
+            <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 pt-1">
+              <span>MP4 / WebM / MOV</span>
               <span>•</span>
               <span>Max 150MB</span>
+              <span>•</span>
+              <span>SHA-256 Indexed</span>
             </div>
           </div>
 
-          {/* Upload Error Alert */}
-          {errorMessage && (
-            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
-
-          {/* Upload Progress Bar */}
-          {uploadStatus === "UPLOADING" && (
-            <div className="p-4 rounded-2xl bg-slate-900 border border-cyan-500/30 space-y-2.5 animate-in fade-in">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300 flex items-center gap-2">
-                  <Video className="w-4 h-4 text-cyan-400 animate-pulse" />
-                  <span className="truncate max-w-[200px]">{selectedFile?.name || "assessment_recording.mp4"}</span>
-                </span>
-                <span className="text-cyan-400 font-bold">{uploadProgress}%</span>
-              </div>
-
-              <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-
-              <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-0.5">
-                <span>Transfer speed: ~4.2 MB/s</span>
-                <span>{selectedFile?.sizeMb} MB Total</span>
-              </div>
-            </div>
-          )}
-
-          {/* UPLOAD COMPLETE BANNER + PROMINENT "START TEST" BUTTON */}
-          {uploadStatus === "COMPLETE" && selectedFile && (
-            <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-slate-900 via-[#0a1424] to-slate-950 border border-cyan-500/40 shadow-xl space-y-3.5">
+          {/* Upload Status Details */}
+          {selectedFile && uploadStatus === "COMPLETE" && (
+            <div className="p-4 sm:p-5 rounded-3xl bg-slate-900 border border-cyan-500/40 space-y-3 shadow-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Upload &amp; Integrity Verification Successful</span>
+                  <span>Video Loaded &amp; Authenticated</span>
                 </div>
-                <span className="font-mono text-[10px] text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40">
-                  Ready for Self-Review
+                <span className="font-mono text-[10px] text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
+                  Ready for Model Run
                 </span>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-300 font-mono flex items-center justify-between">
-                <span className="truncate max-w-[220px]" title={selectedFile.name}>
+              <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-300 font-mono flex items-center justify-between">
+                <span className="truncate max-w-[200px]" title={selectedFile.name}>
                   {selectedFile.name}
                 </span>
-                <span className="text-slate-400 shrink-0">{selectedFile.sizeMb} MB</span>
+                <span className="text-slate-400">{selectedFile.sizeMb} MB</span>
               </div>
 
-              {/* DIRECT START TEST ACTION */}
-              <div className="space-y-1.5 pt-1">
-                <button
-                  type="button"
-                  disabled={isAuditing}
-                  onClick={handleStartTest}
-                  className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-amber-400 hover:from-cyan-300 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/25 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-                >
-                  <Sparkles className="w-4 h-4 fill-current" />
-                  <span>{isAuditing ? "Auditing Video..." : "Start Test (Run Pre-Audit)"}</span>
-                </button>
-                <p className="text-[10px] text-center text-slate-400 font-mono">
-                  Immediately validates 1000V PPE, 0V checks, and proctoring telemetry
-                </p>
-              </div>
+              {/* "START TEST" PROMINENT ACTION */}
+              <button
+                type="button"
+                disabled={testWorkflowPhase === "ANALYZING"}
+                onClick={handleStartTest}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-amber-400 hover:from-cyan-300 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-cyan-500/25 transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4 fill-current" />
+                <span>
+                  {testWorkflowPhase === "ANALYZING"
+                    ? "Models Running Through Video..."
+                    : "Start Test (Run AI Models)"}
+                </span>
+              </button>
             </div>
           )}
 
-          {/* SELF-TAGGING QUICK ACTIONS */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/60 border border-slate-800/80 space-y-3">
+          {/* SELF-TAGGING QUICK CHECKS */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/60 border border-slate-800 space-y-3">
             <div className="flex items-center justify-between text-xs font-mono text-slate-300">
               <span className="flex items-center gap-1.5 font-bold">
                 <Tag className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Mark Key Proof Checkpoints at {currentTimeSec.toFixed(1)}s:</span>
+                <span>Mark Verification Checkpoints:</span>
               </span>
-              <span className="text-slate-500 text-[10px]">{selfTags.length} Tags Attached</span>
+              <span className="text-slate-500 text-[10px]">{selfTags.length} Attached</span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => handleAddTag("1000V Glove Inspection & Roll-Up Test", "SAFETY")}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
+                onClick={() => handleAddTag("1000V Glove Inspection & Roll-Up", "SAFETY")}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-emerald-300 border border-slate-700 cursor-pointer"
               >
-                <span>+ Safety Glove Tag</span>
+                + Safety Glove Tag
               </button>
               <button
                 type="button"
-                onClick={() => handleAddTag("CAT-III Multimeter 0.00V Live-Dead-Live", "PROCEDURE")}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-cyan-300 flex items-center gap-1 transition-colors cursor-pointer"
+                onClick={() => handleAddTag("CAT-III Multimeter 0.00V Check", "PROCEDURE")}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-cyan-300 border border-slate-700 cursor-pointer"
               >
-                <span>+ 0V Measurement Tag</span>
+                + 0V Measurement Tag
               </button>
               <button
                 type="button"
                 onClick={() => handleAddTag("Torque Clutch Slip Audible Confirmation", "PROCEDURE")}
-                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-mono text-amber-300 flex items-center gap-1 transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-amber-300 border border-slate-700 cursor-pointer"
               >
-                <span>+ Torque Test Tag</span>
+                + Torque Test Tag
               </button>
             </div>
 
-            {/* List of Applied Self-Tags */}
             <div className="space-y-1.5 pt-1">
               {selfTags.map((tag) => (
                 <div
@@ -587,11 +538,7 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                     </span>
                     <span className="text-slate-200 truncate">{tag.label}</span>
                   </div>
-                  <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full shrink-0 ${
-                    tag.category === "SAFETY"
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                      : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30"
-                  }`}>
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shrink-0">
                     {tag.category}
                   </span>
                 </div>
@@ -601,40 +548,36 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
         </div>
 
         {/* =========================================================
-         * RIGHT: INSTANT-PLAYBACK CONTAINER (ENHANCED VIDEO) &
-         * DETAILED SCORE ANALYSIS SUITE
+         * STEP 2 & 3: AI MODEL EXECUTION / ENHANCED SELF-CHECKING CONTAINER
          * ========================================================= */}
         <div className="lg:col-span-7 space-y-4">
           <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-4">
-            {/* Header & Enhancement Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            {/* Header with self-checking indicator */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center gap-2">
                   <Play className="w-3.5 h-3.5 text-cyan-400 fill-current" />
-                  <span>Instant Self-Review Container</span>
+                  <span>Instant Self-Checking Container</span>
                 </span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
                   Enhanced Playback
                 </span>
               </div>
 
-              {/* Time display */}
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs font-mono text-cyan-400 bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800">
-                  {currentTimeSec.toFixed(1)}s / {durationSec.toFixed(1)}s
-                </span>
-              </div>
+              <span className="text-xs font-mono text-cyan-400 bg-slate-950 px-2.5 py-1 rounded-full border border-slate-800 self-start sm:self-auto">
+                {currentTimeSec.toFixed(1)}s / {durationSec.toFixed(1)}s
+              </span>
             </div>
 
-            {/* AI Enhancement Preset Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800/90 text-xs">
+            {/* AI Enhancement Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsEnhanced(!isEnhanced)}
                   className={`px-2.5 py-1 rounded-lg font-mono text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     isEnhanced
-                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm shadow-cyan-500/20"
+                      ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50"
                       : "bg-slate-800 text-slate-400 border border-slate-700"
                   }`}
                 >
@@ -679,50 +622,42 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAiOverlayHud(!showAiOverlayHud)}
-                  className={`text-[10px] font-mono px-2 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer ${
-                    showAiOverlayHud
-                      ? "text-emerald-400 bg-emerald-950/50 border border-emerald-500/30"
-                      : "text-slate-400 bg-slate-900 border border-slate-800"
-                  }`}
-                >
-                  <Eye className="w-3 h-3" />
-                  <span>HUD Bounding Boxes</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowAiOverlayHud(!showAiOverlayHud)}
+                className={`text-[10px] font-mono px-2 py-1 rounded-md flex items-center gap-1 cursor-pointer ${
+                  showAiOverlayHud
+                    ? "text-emerald-400 bg-emerald-950/50 border border-emerald-500/30"
+                    : "text-slate-400 bg-slate-900 border border-slate-800"
+                }`}
+              >
+                <Eye className="w-3 h-3" />
+                <span>HUD Bounding Boxes</span>
+              </button>
             </div>
 
-            {/* =========================================================
-             * ACTUAL VIDEO PLAYER / ENHANCED PLAYBACK CONTAINER
-             * ========================================================= */}
+            {/* VIDEO PLAYER ELEMENT */}
             <div className="relative aspect-video rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center group shadow-2xl">
-              {/* Render actual uploaded video if URL available */}
               {selectedFile?.url ? (
                 <video
                   ref={videoRef}
                   src={selectedFile.url}
-                  onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onEnded={handleEnded}
+                  onTimeUpdate={() => videoRef.current && setCurrentTimeSec(videoRef.current.currentTime)}
+                  onLoadedMetadata={() => videoRef.current && setDurationSec(videoRef.current.duration || 36)}
+                  onEnded={() => setIsPlaying(false)}
                   muted={isMuted}
                   playsInline
                   style={getEnhancementStyle()}
-                  className="w-full h-full object-contain bg-black transition-all duration-300"
+                  className="w-full h-full object-contain bg-black"
                 />
               ) : (
-                /* Fallback simulated visual workshop frame */
                 <div 
                   className="w-full h-full flex flex-col items-center justify-center bg-slate-950 relative overflow-hidden"
                   style={getEnhancementStyle()}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-slate-950" />
-                  
-                  {/* Workshop workbench simulation graphics */}
                   <div className="relative z-10 text-center space-y-2 p-6">
-                    <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto shadow-lg shadow-cyan-500/10">
+                    <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto shadow-lg">
                       <Video className="w-8 h-8" />
                     </div>
                     <div>
@@ -730,21 +665,17 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                         {selectedFile?.name || "Uploaded Workshop Assessment Video"}
                       </h4>
                       <p className="text-xs text-slate-400 font-mono mt-1">
-                        High-Definition 1080p Stream • AI Calibration Ready
+                        High-Definition 1080p Stream • AI Calibration Active
                       </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Ambient overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
-
-              {/* DYNAMIC HUD BOUNDING BOXES OVERLAY */}
+              {/* HUD BOUNDING BOXES */}
               {showAiOverlayHud && (
                 <div className="absolute inset-0 pointer-events-none p-4 flex flex-col justify-between">
-                  {/* Top-Right Telemetry Badge */}
-                  <div className="self-end bg-black/80 backdrop-blur-md border border-cyan-500/40 rounded-xl p-2 font-mono text-[9px] text-cyan-300 space-y-0.5 shadow-lg">
+                  <div className="self-end bg-black/85 backdrop-blur-md border border-cyan-500/40 rounded-xl p-2 font-mono text-[9px] text-cyan-300 space-y-0.5 shadow-lg">
                     <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                       <span>{isEnhanced ? "AI ENHANCED (1080p+)" : "RAW FOOTAGE"}</span>
@@ -753,7 +684,6 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                     <div className="text-slate-400">FPS: 30.0 • Shutter: 1/60s</div>
                   </div>
 
-                  {/* Contextual Bounding Boxes based on video timestamp */}
                   {currentTimeSec <= 12 ? (
                     <div className="w-56 h-32 border-2 border-emerald-400 rounded-lg bg-emerald-500/10 flex flex-col justify-between p-1.5 animate-pulse ml-4 mb-10">
                       <span className="text-[9px] font-mono font-bold text-emerald-300 bg-black/85 px-1.5 py-0.5 rounded w-fit border border-emerald-400/50">
@@ -785,23 +715,19 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                 </div>
               )}
 
-              {/* Centered Big Play/Pause overlay button */}
+              {/* Play / Pause Center Overlay Button */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                 <button
                   type="button"
                   onClick={togglePlay}
-                  className="pointer-events-auto w-14 h-14 rounded-2xl bg-cyan-500/25 hover:bg-cyan-500/35 border border-cyan-400/60 text-cyan-300 flex items-center justify-center shadow-xl shadow-cyan-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-sm"
+                  className="pointer-events-auto w-14 h-14 rounded-2xl bg-cyan-500/30 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-300 flex items-center justify-center shadow-xl transition-all cursor-pointer backdrop-blur-sm hover:scale-105"
                 >
-                  {isPlaying ? (
-                    <Pause className="w-6 h-6 fill-current" />
-                  ) : (
-                    <Play className="w-6 h-6 fill-current ml-0.5" />
-                  )}
+                  {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
                 </button>
               </div>
 
-              {/* Scrubber and controls bar inside container */}
-              <div className="absolute bottom-2.5 inset-x-3 space-y-1.5 z-20 bg-black/60 backdrop-blur-md p-2 rounded-xl border border-slate-800">
+              {/* Scrubber bar */}
+              <div className="absolute bottom-2.5 inset-x-3 space-y-1.5 z-20 bg-black/70 backdrop-blur-md p-2 rounded-xl border border-slate-800">
                 <input
                   type="range"
                   min={0}
@@ -813,11 +739,7 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                 />
                 <div className="flex items-center justify-between text-[10px] font-mono text-slate-300">
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={togglePlay}
-                      className="text-cyan-400 hover:text-white transition-colors cursor-pointer"
-                    >
+                    <button type="button" onClick={togglePlay} className="text-cyan-400 hover:text-white cursor-pointer">
                       {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
                     </button>
                     <span>{currentTimeSec.toFixed(1)}s / {durationSec.toFixed(1)}s</span>
@@ -828,14 +750,13 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                       type="button"
                       onClick={() => setIsMuted(!isMuted)}
                       className="text-slate-400 hover:text-white cursor-pointer"
-                      title={isMuted ? "Unmute Audio" : "Mute Audio"}
                     >
                       {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       type="button"
-                      onClick={() => changePlaybackRate(playbackRate === 1 ? 1.5 : playbackRate === 1.5 ? 2 : 1)}
-                      className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 cursor-pointer"
+                      onClick={() => setPlaybackRate(playbackRate === 1 ? 1.5 : playbackRate === 1.5 ? 2 : 1)}
+                      className="px-1.5 py-0.5 rounded bg-slate-800 text-cyan-300 cursor-pointer"
                     >
                       {playbackRate}x
                     </button>
@@ -844,43 +765,69 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
               </div>
             </div>
 
-            {/* AUDIT IN PROGRESS BANNER */}
-            {isAuditing && (
-              <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/40 space-y-2 text-center animate-pulse">
+            {/* MODEL RUNNING PROGRESS OVERLAY */}
+            {testWorkflowPhase === "ANALYZING" && (
+              <div className="p-4 rounded-2xl bg-cyan-950/50 border border-cyan-500/50 space-y-2 text-center animate-pulse">
                 <div className="flex items-center justify-center gap-2 text-cyan-400 font-mono font-bold text-xs">
                   <Sparkles className="w-4 h-4 animate-spin" />
-                  <span>Multimodal AI Verification in Progress...</span>
+                  <span>AI Models Running Through Workshop Video (Phase {auditStepIndex}/4)...</span>
                 </div>
                 <p className="text-xs text-slate-300 font-mono">{auditStepMessage}</p>
                 <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden mt-1">
-                  <div className="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-amber-400 animate-pulse w-3/4 rounded-full" />
+                  <div className="h-full bg-gradient-to-r from-cyan-400 via-blue-500 to-amber-400 w-3/4 rounded-full" />
                 </div>
               </div>
             )}
 
             {/* =========================================================
-             * DETAILED SCORE ANALYSIS & NSQF COMPETENCY DOSSIER
+             * RE-CONFIRM SUBMISSION ACTION BAR
+             * (User self-checks footage and confirms final submission)
              * ========================================================= */}
-            {auditResult && !isAuditing && (
-              <div className="p-5 sm:p-6 rounded-3xl bg-slate-950 border border-cyan-500/40 space-y-4 animate-in fade-in shadow-2xl">
-                {/* Score Summary Header */}
+            {testWorkflowPhase !== "ANALYZING" && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-cyan-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Self-Checking Complete?</span>
+                  </span>
+                  <p className="text-xs text-slate-400 font-light max-w-md">
+                    Inspect your video above. When satisfied with your PPE and multimeter readings, re-confirm submission to lock your score for official grading.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmModal(true)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer shrink-0 hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <CheckCircle2 className="w-4 h-4 fill-current text-slate-950" />
+                  <span>Re-Confirm Submission</span>
+                </button>
+              </div>
+            )}
+
+            {/* =========================================================
+             * STEP 3: DETAILED SCORE ANALYSIS (UNLOCKED AFTER RE-CONFIRM)
+             * ========================================================= */}
+            {(testWorkflowPhase === "SCORE_ANALYSIS" || isConfirmedSubmitted) && (
+              <div className="p-5 sm:p-6 rounded-3xl bg-slate-950 border border-cyan-500/40 space-y-4 animate-in fade-in duration-300 shadow-2xl">
+                {/* Score Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-                  <div className="space-y-1">
+                  <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Pre-Flight Audit: Approved for NSQF Submission</span>
+                        <span>Submission Re-Confirmed &amp; Audited</span>
                       </span>
                       <span className="text-[10px] font-mono text-slate-400">
                         Confidence: {auditResult.confidence}%
                       </span>
                     </div>
-                    <h4 className="text-base font-bold text-white">
-                      Comprehensive Practical Examination Scorecard
+                    <h4 className="text-base font-bold text-white mt-1">
+                      Detailed NSQF Practical Competency Score Analysis
                     </h4>
                   </div>
 
-                  {/* Composite Score Circle / Badge */}
                   <div className="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-2xl border border-slate-800 self-start sm:self-auto">
                     <div className="text-right">
                       <span className="text-[10px] font-mono text-slate-400 uppercase block">Composite Score</span>
@@ -977,7 +924,6 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                       </div>
                     </div>
 
-                    {/* Key Findings List */}
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1.5 text-xs text-slate-300">
                       <span className="font-mono text-[10px] uppercase text-slate-400 block font-bold">
                         AI Evaluator Observations:
@@ -1027,7 +973,7 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                   </div>
                 )}
 
-                {/* TAB 3: INTEGRITY TELEMETRY */}
+                {/* TAB 3: TELEMETRY */}
                 {activeScoreTab === "TELEMETRY" && (
                   <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 text-xs font-mono">
                     <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
@@ -1036,7 +982,7 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                     </div>
                     <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
                       <span className="text-slate-400">Max Saccadic Lateral Deviation</span>
-                      <span className="text-slate-200">1.1s (Under 2.0s threshold)</span>
+                      <span className="text-slate-200">1.1s (Threshold: 2.0s)</span>
                     </div>
                     <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
                       <span className="text-slate-400">Corneal Pupil Reflectance</span>
@@ -1049,49 +995,109 @@ export const AdvancedMediaUpload: React.FC<AdvancedMediaUploadProps> = ({
                   </div>
                 )}
 
-                {/* ACTION BUTTONS */}
+                {/* FOOTER ACTIONS */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      confetti({ particleCount: 30, spread: 45 });
+                      alert("Official NSQF Verification Dossier (SHA-256 Hash: 0x9B4E...2026) has been packaged for download.");
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-mono font-semibold flex items-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download Verification PDF</span>
+                  </button>
+
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => {
-                        confetti({ particleCount: 40, spread: 50 });
-                        alert("Official NSQF Verification Dossier (SHA-256 Hash: 0x9B4E...2026) has been packaged for download.");
-                      }}
-                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-700"
+                      onClick={onBackToCourse}
+                      className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-mono font-semibold cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Download Scorecard PDF</span>
+                      Return to Course
                     </button>
-
                     {onViewScorecard && (
                       <button
                         type="button"
                         onClick={onViewScorecard}
-                        className="px-3.5 py-2 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 hover:text-white text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-cyan-500/30"
+                        className="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 text-xs font-mono font-bold cursor-pointer"
                       >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Open Full Scorecard</span>
+                        View Full Scorecard
                       </button>
                     )}
                   </div>
-
-                  {onStartAssessment && (
-                    <button
-                      type="button"
-                      onClick={onStartAssessment}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-emerald-500/20"
-                    >
-                      <span>Formal Institutional Exam</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* =========================================================
+       * RE-CONFIRM SUBMISSION MODAL
+       * ========================================================= */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl p-6 sm:p-7 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-white font-bold text-base">
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <span>Re-Confirm Submission</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed font-light">
+              You are about to re-confirm your practical test case submission for <strong className="text-white">{course.title}</strong> (Task: {course.currentTaskTitle}).
+            </p>
+
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs font-mono">
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Check className="w-4 h-4" />
+                <span>Self-checking footage verified</span>
+              </div>
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Check className="w-4 h-4" />
+                <span>Class 0 1000V Dielectric Gloves detected</span>
+              </div>
+              <div className="flex items-center gap-2 text-emerald-400">
+                <Check className="w-4 h-4" />
+                <span>Live-Dead-Live 0.00V check recorded</span>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 font-mono">
+              Upon clicking "Confirm &amp; Finalize", this test will be locked with SHA-256 integrity and your comprehensive score analysis will be finalized.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono cursor-pointer"
+              >
+                Cancel &amp; Continue Review
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExecuteFinalSubmission}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-500/20"
+              >
+                <CheckCircle2 className="w-4 h-4 fill-current" />
+                <span>Confirm &amp; Finalize</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
